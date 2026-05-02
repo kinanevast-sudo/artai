@@ -25,10 +25,13 @@ export async function GET(request: NextRequest) {
 
   // ✅ استخدم v25.0
   const scope = [
-    'pages_show_list',
-    'public_profile',
-    'pages_manage_posts'
-  ].join(',')
+  'pages_show_list',
+  'public_profile',
+  'pages_manage_posts',
+  'instagram_basic',
+  'instagram_content_publish',
+  'instagram_manage_insights',
+].join(',')
 
   const facebookAuthUrl = `https://www.facebook.com/v25.0/dialog/oauth?` +
     `client_id=${APP_ID}` +
