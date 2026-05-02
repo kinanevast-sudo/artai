@@ -1,8 +1,8 @@
 // src/lib/facebook.ts
 
 const GRAPH_API = 'https://graph.facebook.com/v25.0'
+
 export async function exchangeCodeForAccessToken(code: string, redirectUri: string): Promise<string> {
-  // ✅ اصلاح: استخدام NEXT_PUBLIC_FACEBOOK_APP_ID
   const params = new URLSearchParams({
     client_id: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
     client_secret: process.env.FACEBOOK_APP_SECRET!,
@@ -21,7 +21,6 @@ export async function exchangeCodeForAccessToken(code: string, redirectUri: stri
 }
 
 export async function getLongLivedToken(shortLivedToken: string): Promise<string> {
-  // ✅ اصلاح: استخدام NEXT_PUBLIC_FACEBOOK_APP_ID
   const params = new URLSearchParams({
     grant_type: 'fb_exchange_token',
     client_id: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
@@ -71,6 +70,44 @@ export async function getPageAccessToken(pageId: string, userAccessToken: string
   }
 
   return json.access_token as string
+}
+
+// ✅ دالة جديدة: جلب حساب Instagram المرتبط بصفحة فيسبوك
+export interface InstagramAccount {
+  id: string
+  username: string
+  name: string
+  profile_picture_url: string
+  followers_count: number
+  follows_count: number
+  media_count: number
+}
+
+export async function getInstagramAccount(
+  pageAccessToken: string,
+  pageId: string
+): Promise<InstagramAccount | null> {
+  try {
+    const res = await fetch(
+      `${GRAPH_API}/${pageId}?fields=instagram_business_account{id,username,name,profile_picture_url,followers_count,follows_count,media_count}&access_token=${pageAccessToken}`
+    )
+    const json = await res.json()
+
+    if (!res.ok || json.error) {
+      console.error('Error fetching Instagram account:', json.error)
+      return null
+    }
+
+    if (!json.instagram_business_account) {
+      console.log('No Instagram business account linked to this page')
+      return null
+    }
+
+    return json.instagram_business_account as InstagramAccount
+  } catch (error) {
+    console.error('Error fetching Instagram account:', error)
+    return null
+  }
 }
 
 export type MediaType = 'none' | 'image' | 'video'
@@ -140,14 +177,17 @@ export function buildOAuthUrl(redirectUri: string, state: string): string {
     throw new Error('NEXT_PUBLIC_FACEBOOK_APP_ID is not defined')
   }
 
-  // ✅ استخدم v25.0 بدلاً من v19.0
+  // ✅ صلاحيات تشمل Instagram
   const params = new URLSearchParams({
     client_id: appId,
     redirect_uri: redirectUri,
     scope: [
       'pages_show_list',
       'public_profile',
-      'pages_manage_posts'
+      'pages_manage_posts',
+      'instagram_basic',
+      'instagram_content_publish',
+      'instagram_manage_insights',
     ].join(','),
     response_type: 'code',
     state: state,
