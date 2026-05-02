@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://glistening-lolly-459fb1.netlify.app'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://artai23.netlify.app'
 
   if (!user) {
     return NextResponse.redirect(new URL('/login', siteUrl))
