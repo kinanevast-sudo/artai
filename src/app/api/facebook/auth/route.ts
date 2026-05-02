@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   'pages_manage_posts',
   'instagram_basic',
   'instagram_content_publish',
-  'instagram_manage_insights',
+  'pages_read_engagement',
 ].join(',')
 
   const facebookAuthUrl = `https://www.facebook.com/v25.0/dialog/oauth?` +
