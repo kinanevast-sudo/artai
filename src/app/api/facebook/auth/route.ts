@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 
 export async function GET(request: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   }
 
   const APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://glistening-lolly-459fb1.netlify.app'
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://artai23.netlify.app'
 
   if (!APP_ID) {
     console.error('❌ NEXT_PUBLIC_FACEBOOK_APP_ID is not defined')
