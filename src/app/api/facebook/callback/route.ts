@@ -3,6 +3,7 @@ import {
   exchangeCodeForAccessToken,
   getLongLivedToken,
   getUserPages,
+  getInstagramAccount,
 } from '@/lib/facebook'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -40,7 +41,6 @@ export async function GET(request: NextRequest) {
   try {
     const redirectUri = `${siteUrl}/api/facebook/callback`
     
-    // تبادل الكود للحصول على token
     const shortToken = await exchangeCodeForAccessToken(code, redirectUri)
     const longToken = await getLongLivedToken(shortToken)
     const pages = await getUserPages(longToken)
@@ -53,9 +53,9 @@ export async function GET(request: NextRequest) {
 
     const tokenExpiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
 
-    // حفظ كل صفحة في قاعدة البيانات
     for (const page of pages) {
-      const { error: upsertError } = await supabase
+      // حفظ صفحة فيسبوك
+      const { error: fbError } = await supabase
         .from('connected_accounts')
         .upsert(
           {
@@ -75,8 +75,36 @@ export async function GET(request: NextRequest) {
           { onConflict: 'user_id,account_id' }
         )
 
-      if (upsertError) {
-        console.error('Error saving page:', upsertError)
+      if (fbError) {
+        console.error('Error saving Facebook page:', fbError)
+      }
+
+      // ✅ جلب وحفظ حساب Instagram المرتبط
+      const igAccount = await getInstagramAccount(page.access_token, page.id)
+      
+      if (igAccount) {
+        const { error: igError } = await supabase
+          .from('connected_accounts')
+          .upsert(
+            {
+              user_id: user.id,
+              platform: 'instagram',
+              account_id: igAccount.id,
+              account_name: igAccount.name || igAccount.username,
+              account_username: igAccount.username,
+              avatar_url: igAccount.profile_picture_url || '',
+              access_token: page.access_token,
+              token_expires_at: tokenExpiresAt,
+              is_active: true,
+              followers_count: igAccount.followers_count || 0,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id,account_id' }
+          )
+
+        if (igError) {
+          console.error('Error saving Instagram account:', igError)
+        }
       }
     }
 
