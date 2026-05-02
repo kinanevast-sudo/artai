@@ -28,7 +28,7 @@ const PLATFORM_CONFIG = [
     color: 'text-pink-500',
     bg: 'bg-pink-50 dark:bg-pink-950/30',
     desc: 'Share photos, videos, stories and reels',
-    available: false,
+    available: true,
   },
   {
     id: 'twitter',
